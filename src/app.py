@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Character, Favorite
 #from models import Person
 
 app = Flask(__name__)
@@ -106,6 +106,35 @@ def update_user(username):
         return jsonify(searched_user.serialize()), 200
     else:
         return jsonify({ "error": f"User with username: {username} not found!" }), 404
+
+
+@app.route('/favorites', methods=['GET'])
+def get_favorites():
+    favorites  = Favorite.query.all()
+    fav_serializados = [ favorite.serialize() for favorite in favorites ]
+    return jsonify(fav_serializados), 200
+
+@app.route('/favorites', methods=['POST'])
+def new_favorites():
+
+    body = request.json
+    user_id = body.get('user_id', None)
+    character_id = body.get('character_id', None)
+
+    if character_id == None or user_id == None:
+        return jsonify({ "error": f"Missing with user_id or character_id" }), 400
+
+    user = User.query.get(user_id)
+    character = Character.query.get(character_id)
+
+    if user == None or character == None:
+        return jsonify({ "error": f"User with id {user_id} or Character with id {character_id} not found" }), 404
+
+    new_favorite = Favorite(user, character)
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify(new_favorite.serialize()), 200
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
