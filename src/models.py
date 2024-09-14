@@ -25,3 +25,37 @@ class User(db.Model):
             # do not serialize the password, its a security breach,
             "username": self.username
         }
+
+class Character(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(42), unique=True, nullable=False)
+    ki = db.Column(db.Integer, nullable=False)
+    race = db.Column(db.String(48), nullable=False)
+
+    def __init__(self, name, ki, race):
+        self.name = name
+        self.ki = ki
+        self.race = race
+
+    def serialize(self):
+        return {
+            'name': self.name,
+            'ki': self.ki,
+            'race': self.race
+        }
+
+class Favorite(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    character_id = db.Column(db.Integer, db.ForeignKey("character.id"), nullable=False)
+
+    def serialize(self):
+
+        return {
+            'id': self.id
+        }
